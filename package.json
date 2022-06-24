@@ -1,6 +1,6 @@
 {
-  "name": "@sweetacid/expression-trees",
-  "version": "0.0.0",
+  "name": "@sweetacid-expression-trees",
+  "version": "0.0.1",
   "type": "module",
   "engines": {
     "node": ">= 16.13 <17"
