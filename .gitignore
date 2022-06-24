@@ -11,7 +11,7 @@ package-lock.json
 coverage
 
 # Transpiled files
-build/
+#build/
 
 # VS Code
 .vscode

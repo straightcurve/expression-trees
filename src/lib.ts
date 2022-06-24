@@ -111,7 +111,8 @@ export function deserialize(
 export abstract class Expression {
   constructor(public type: string) { }
 
-  public abstract evaluate(): any;
+  public abstract evaluate(): Promise<any>;
+  public abstract evaluateSync(): any;
 }
 
 export class ConstantExpression extends Expression {
@@ -128,7 +129,11 @@ export class ConstantExpression extends Expression {
     this._value = v;
   }
 
-  public override evaluate() {
+  public override async evaluate() {
+    return this.value;
+  }
+
+  public override evaluateSync() {
     return this.value;
   }
 }
@@ -191,8 +196,12 @@ export class AndExpression extends BinaryExpression {
     super('and', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() && this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) && (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() && this.right.evaluateSync();
   }
 }
 
@@ -201,8 +210,12 @@ export class OrExpression extends BinaryExpression {
     super('or', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() || this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) || (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() || this.right.evaluateSync();
   }
 }
 
@@ -211,8 +224,12 @@ export class GreaterThanExpression extends BinaryExpression {
     super('greater-than', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() > this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) > (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() > this.right.evaluateSync();
   }
 }
 
@@ -221,8 +238,12 @@ export class LessThanExpression extends BinaryExpression {
     super('less-than', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() < this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) < (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() < this.right.evaluateSync();
   }
 }
 
@@ -231,8 +252,12 @@ export class GreaterThanOrEqualExpression extends BinaryExpression {
     super('greater-than-or-equal', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() >= this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) >= (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() >= this.right.evaluateSync();
   }
 }
 
@@ -241,8 +266,12 @@ export class LessThanOrEqualExpression extends BinaryExpression {
     super('less-than-or-equal', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() <= this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) <= (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() <= this.right.evaluateSync();
   }
 }
 
@@ -251,8 +280,12 @@ export class EqualsExpression extends BinaryExpression {
     super('equals', left, right);
   }
 
-  public override evaluate() {
-    return this.left.evaluate() === this.right.evaluate();
+  public override async evaluate(): Promise<boolean> {
+    return (await this.left.evaluate()) === (await this.right.evaluate());
+  }
+
+  public override evaluateSync(): boolean {
+    return this.left.evaluateSync() === this.right.evaluateSync();
   }
 }
 
@@ -261,8 +294,15 @@ export class BlockExpression extends Expression {
     super('block');
   }
 
-  public override evaluate() {
-    this.expressions.forEach((e) => e.evaluate());
+  public override async evaluate(): Promise<void> {
+    for (let i = 0; i < this.expressions.length; i++) {
+      const expr = this.expressions[i];
+      await expr.evaluate();
+    }
+  }
+
+  public override evaluateSync(): void {
+    this.expressions.forEach((e) => e.evaluateSync());
   }
 }
 
@@ -271,8 +311,13 @@ export class IfThenExpression extends Expression {
     super('if-then');
   }
 
-  public override evaluate() {
-    if (this.condition.evaluate()) this.then.evaluate();
+  public override async evaluate(): Promise<void> {
+    const check = await this.condition.evaluate();
+    if (check) await this.then.evaluate();
+  }
+
+  public override evaluateSync(): void {
+    if (this.condition.evaluateSync()) this.then.evaluateSync();
   }
 }
 
