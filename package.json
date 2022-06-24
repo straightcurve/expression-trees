@@ -41,5 +41,7 @@
   },
   "volta": {
     "node": "16.13.0"
-  }
+  },
+  "types": "./build/src/lib.d.ts",
+  "main": "./build/src/lib.js"
 }
