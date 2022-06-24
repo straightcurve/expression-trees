@@ -109,7 +109,7 @@ export function deserialize(
 }
 
 export abstract class Expression {
-  constructor(public type: string) {}
+  constructor(public type: string) { }
 
   public abstract evaluate(): any;
 }
@@ -275,3 +275,26 @@ export class IfThenExpression extends Expression {
     if (this.condition.evaluate()) this.then.evaluate();
   }
 }
+
+export type ExtractedIfThenExpression = {
+  conditions: Expression[];
+  outcomes: Expression[];
+}
+
+export type ExtractIfThenExpressionFn = (expr: IfThenExpression) => ExtractedIfThenExpression;
+
+export const parse: ExtractIfThenExpressionFn = (expr) => {
+  let result: ExtractedIfThenExpression = { conditions: [], outcomes: [] };
+
+  switch (expr.condition.type) {
+    case "binary-operation": { 
+      
+      break; }
+    default: {
+      result.conditions.push(expr.condition);
+    }
+  }
+
+  return result;
+};
+

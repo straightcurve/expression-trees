@@ -1,3 +1,4 @@
+import { parse } from '../src/lib.js';
 import {
   AndExpression,
   BlockExpression,
@@ -200,6 +201,20 @@ describe('expression trees', () => {
 
         expr.evaluate();
         expect(value).toEqual(42);
+      });
+
+      it('should parse properly', () => {
+        const condition = new BooleanExpression(false);
+        const outcome =
+          new TestExpression(() => { })
+        const block = new BlockExpression([
+          outcome
+        ] as Expression[]);
+        const expr = new IfThenExpression(condition, block);
+
+        const result = parse(expr);
+        expect(result.conditions[0]).toEqual(condition)
+        expect(result.outcomes[0]).toEqual(outcome)
       });
     });
   });
