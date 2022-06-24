@@ -332,11 +332,39 @@ export const parse: ExtractIfThenExpressionFn = (expr) => {
   let result: ExtractedIfThenExpression = { conditions: [], outcomes: [] };
 
   switch (expr.condition.type) {
-    case "binary-operation": { 
-      
-      break; }
+    case "binary-expression": {
+      const binary = expr.condition as BinaryExpression;
+      const conditions: Expression[] = [binary.right];
+
+      let current = binary;
+      while (current.type === 'binary-expression') {
+        conditions.push(current.right);
+
+        if (current.left.type === "binary-expression") {
+          current = current.left as BinaryExpression;
+          continue;
+        }
+
+        conditions.push(current.left);
+        break;
+      }
+
+      result.conditions.push(...conditions.reverse())
+      break;
+    }
     default: {
       result.conditions.push(expr.condition);
+    }
+  }
+
+  switch (expr.then.type) {
+    case "block": {
+      const block = expr.then as BlockExpression;
+      result.outcomes.push(...block.expressions)
+      break;
+    }
+    default: {
+      result.outcomes.push(expr.then);
     }
   }
 

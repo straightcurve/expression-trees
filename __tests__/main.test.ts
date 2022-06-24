@@ -11,14 +11,18 @@ import {
   NumberExpression,
   OrExpression,
   StringExpression,
-} from '../src/main.js';
+} from '../src/lib.js';
 
 class TestExpression extends Expression {
   constructor(private lambda: () => void) {
     super('test');
   }
 
-  public override evaluate() {
+  public override async evaluate() {
+    this.lambda();
+  }
+
+  public override evaluateSync() {
     this.lambda();
   }
 }
@@ -44,12 +48,12 @@ describe('expression trees', () => {
 
     expect(tree.type).toEqual('binary-expression');
     expect(tree.op).toEqual('greater-than');
-    expect(tree.evaluate()).toEqual(false);
+    expect(tree.evaluateSync()).toEqual(false);
 
     expect(tree.left.type).toEqual('constant');
-    expect(tree.left.evaluate()).toEqual(45);
+    expect(tree.left.evaluateSync()).toEqual(45);
     expect(tree.right.type).toEqual('constant');
-    expect(tree.right.evaluate()).toEqual(66);
+    expect(tree.right.evaluateSync()).toEqual(66);
   });
 
   it('should deserialize properly', () => {
@@ -91,7 +95,7 @@ describe('expression trees', () => {
 
     expect(tree.type).toEqual('binary-expression');
     expect(tree.op).toEqual('and');
-    expect(tree.evaluate()).toEqual(false);
+    expect(tree.evaluateSync()).toEqual(false);
 
     const treeLeft = tree.left as GreaterThanExpression;
     const treeRight = tree.right as EqualsExpression;
@@ -106,20 +110,20 @@ describe('expression trees', () => {
 
     expect(treeLeftLeft.type).toEqual('constant');
     expect(treeLeftLeft.valueType).toEqual('number');
-    expect(treeLeftLeft.evaluate()).toEqual(45);
+    expect(treeLeftLeft.evaluateSync()).toEqual(45);
     expect(treeLeftRight.type).toEqual('constant');
     expect(treeLeftRight.valueType).toEqual('number');
-    expect(treeLeftRight.evaluate()).toEqual(66);
+    expect(treeLeftRight.evaluateSync()).toEqual(66);
 
     const treeRightLeft = treeRight.left as StringExpression;
     const treeRightRight = treeRight.right as StringExpression;
 
     expect(treeRightLeft.type).toEqual('constant');
     expect(treeRightLeft.valueType).toEqual('string');
-    expect(treeRightLeft.evaluate()).toEqual('tony');
+    expect(treeRightLeft.evaluateSync()).toEqual('tony');
     expect(treeRightRight.type).toEqual('constant');
     expect(treeRightRight.valueType).toEqual('string');
-    expect(treeRightRight.evaluate()).toEqual('tony');
+    expect(treeRightRight.evaluateSync()).toEqual('tony');
   });
 
   describe('operations evaluation', () => {
@@ -135,7 +139,7 @@ describe('expression trees', () => {
       tree = new OrExpression(tree, z);
       tree = new AndExpression(tree, a);
 
-      expect(tree.evaluate()).toEqual(false);
+      expect(tree.evaluateSync()).toEqual(false);
     });
 
     it('logical: if ((X and Y) or (Z and A)) then S', () => {
@@ -148,7 +152,7 @@ describe('expression trees', () => {
       const za = new AndExpression(z, a);
       const xyza = new OrExpression(xy, za);
 
-      expect(xyza.evaluate()).toEqual(true);
+      expect(xyza.evaluateSync()).toEqual(true);
     });
   });
 
@@ -194,13 +198,24 @@ describe('expression trees', () => {
         ] as Expression[]);
         const expr = new IfThenExpression(condition, block);
 
-        expr.evaluate();
+        expr.evaluateSync();
         expect(value).toEqual(23);
 
         condition.value = true;
 
-        expr.evaluate();
+        expr.evaluateSync();
         expect(value).toEqual(42);
+      });
+
+      it('should parse properly', () => {
+        const condition = new BooleanExpression(false);
+        const outcome =
+          new TestExpression(() => { })
+        const expr = new IfThenExpression(condition, outcome);
+
+        const result = parse(expr);
+        expect(result.conditions[0]).toEqual(condition)
+        expect(result.outcomes[0]).toEqual(outcome)
       });
 
       it('should parse properly', () => {
@@ -214,6 +229,46 @@ describe('expression trees', () => {
 
         const result = parse(expr);
         expect(result.conditions[0]).toEqual(condition)
+        expect(result.outcomes[0]).toEqual(outcome)
+      });
+
+      it('should parse properly', () => {
+        const A = new BooleanExpression(false);
+        const B = new BooleanExpression(true);
+        const AandB = new AndExpression(A, B);
+        const outcome =
+          new TestExpression(() => { })
+        const block = new BlockExpression([
+          outcome
+        ] as Expression[]);
+        const expr = new IfThenExpression(AandB, block);
+
+        const result = parse(expr);
+        expect(result.conditions[0].evaluateSync()).toEqual(false)
+        expect(result.conditions[1].evaluateSync()).toEqual(true)
+        expect(result.outcomes[0]).toEqual(outcome)
+      });
+
+      it('should parse properly', () => {
+        const A = new BooleanExpression(true);
+        const B = new BooleanExpression(true);
+        const C = new BooleanExpression(true);
+        const D = new BooleanExpression(false);
+        const AandB = new AndExpression(A, B);
+        const AandBandC = new AndExpression(AandB, C);
+        const AandBandCandD = new AndExpression(AandBandC, D);
+        const outcome =
+          new TestExpression(() => { })
+        const block = new BlockExpression([
+          outcome
+        ] as Expression[]);
+        const expr = new IfThenExpression(AandBandCandD, block);
+
+        const result = parse(expr);
+        expect(result.conditions[0]).toEqual(A)
+        expect(result.conditions[1]).toEqual(B)
+        expect(result.conditions[2]).toEqual(C)
+        expect(result.conditions[3]).toEqual(D)
         expect(result.outcomes[0]).toEqual(outcome)
       });
     });
