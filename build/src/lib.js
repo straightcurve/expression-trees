@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IfThenExpression = exports.BlockExpression = exports.EqualsExpression = exports.LessThanOrEqualExpression = exports.GreaterThanOrEqualExpression = exports.LessThanExpression = exports.GreaterThanExpression = exports.OrExpression = exports.AndExpression = exports.BinaryExpression = exports.BooleanExpression = exports.StringExpression = exports.NumberExpression = exports.ConstantExpression = exports.Expression = exports.deserialize = void 0;
+const tslib_1 = require("tslib");
 function deserialize(sExpression, customDeserializeFn) {
     switch (sExpression.type) {
         case 'constant': {
@@ -78,6 +79,11 @@ class ConstantExpression extends Expression {
         this._value = v;
     }
     evaluate() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.value;
+        });
+    }
+    evaluateSync() {
         return this.value;
     }
 }
@@ -134,7 +140,12 @@ class AndExpression extends BinaryExpression {
         super('and', left, right);
     }
     evaluate() {
-        return this.left.evaluate() && this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) && (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() && this.right.evaluateSync();
     }
 }
 exports.AndExpression = AndExpression;
@@ -143,7 +154,12 @@ class OrExpression extends BinaryExpression {
         super('or', left, right);
     }
     evaluate() {
-        return this.left.evaluate() || this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) || (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() || this.right.evaluateSync();
     }
 }
 exports.OrExpression = OrExpression;
@@ -152,7 +168,12 @@ class GreaterThanExpression extends BinaryExpression {
         super('greater-than', left, right);
     }
     evaluate() {
-        return this.left.evaluate() > this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) > (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() > this.right.evaluateSync();
     }
 }
 exports.GreaterThanExpression = GreaterThanExpression;
@@ -161,7 +182,12 @@ class LessThanExpression extends BinaryExpression {
         super('less-than', left, right);
     }
     evaluate() {
-        return this.left.evaluate() < this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) < (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() < this.right.evaluateSync();
     }
 }
 exports.LessThanExpression = LessThanExpression;
@@ -170,7 +196,12 @@ class GreaterThanOrEqualExpression extends BinaryExpression {
         super('greater-than-or-equal', left, right);
     }
     evaluate() {
-        return this.left.evaluate() >= this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) >= (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() >= this.right.evaluateSync();
     }
 }
 exports.GreaterThanOrEqualExpression = GreaterThanOrEqualExpression;
@@ -179,7 +210,12 @@ class LessThanOrEqualExpression extends BinaryExpression {
         super('less-than-or-equal', left, right);
     }
     evaluate() {
-        return this.left.evaluate() <= this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) <= (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() <= this.right.evaluateSync();
     }
 }
 exports.LessThanOrEqualExpression = LessThanOrEqualExpression;
@@ -188,7 +224,12 @@ class EqualsExpression extends BinaryExpression {
         super('equals', left, right);
     }
     evaluate() {
-        return this.left.evaluate() === this.right.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return (yield this.left.evaluate()) === (yield this.right.evaluate());
+        });
+    }
+    evaluateSync() {
+        return this.left.evaluateSync() === this.right.evaluateSync();
     }
 }
 exports.EqualsExpression = EqualsExpression;
@@ -198,7 +239,15 @@ class BlockExpression extends Expression {
         this.expressions = expressions;
     }
     evaluate() {
-        this.expressions.forEach((e) => e.evaluate());
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            for (let i = 0; i < this.expressions.length; i++) {
+                const expr = this.expressions[i];
+                yield expr.evaluate();
+            }
+        });
+    }
+    evaluateSync() {
+        this.expressions.forEach((e) => e.evaluateSync());
     }
 }
 exports.BlockExpression = BlockExpression;
@@ -209,8 +258,15 @@ class IfThenExpression extends Expression {
         this.then = then;
     }
     evaluate() {
-        if (this.condition.evaluate())
-            this.then.evaluate();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const check = yield this.condition.evaluate();
+            if (check)
+                yield this.then.evaluate();
+        });
+    }
+    evaluateSync() {
+        if (this.condition.evaluateSync())
+            this.then.evaluateSync();
     }
 }
 exports.IfThenExpression = IfThenExpression;

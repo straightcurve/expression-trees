@@ -25,7 +25,8 @@ export declare function deserialize(sExpression: AnySerializedExpression, custom
 export declare abstract class Expression {
     type: string;
     constructor(type: string);
-    abstract evaluate(): any;
+    abstract evaluate(): Promise<any>;
+    abstract evaluateSync(): any;
 }
 export declare class ConstantExpression extends Expression {
     valueType: string;
@@ -33,7 +34,8 @@ export declare class ConstantExpression extends Expression {
     constructor(valueType: string, _value: any);
     get value(): any;
     set value(v: any);
-    evaluate(): any;
+    evaluate(): Promise<any>;
+    evaluateSync(): any;
 }
 export declare class NumberExpression extends ConstantExpression {
     constructor(value: number);
@@ -58,40 +60,49 @@ export declare abstract class BinaryExpression extends Expression {
 }
 export declare class AndExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): any;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class OrExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): any;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class GreaterThanExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): boolean;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class LessThanExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): boolean;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class GreaterThanOrEqualExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): boolean;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class LessThanOrEqualExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): boolean;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class EqualsExpression extends BinaryExpression {
     constructor(left: Expression, right: Expression);
-    evaluate(): boolean;
+    evaluate(): Promise<boolean>;
+    evaluateSync(): boolean;
 }
 export declare class BlockExpression extends Expression {
     expressions: Expression[];
     constructor(expressions: Expression[]);
-    evaluate(): void;
+    evaluate(): Promise<void>;
+    evaluateSync(): void;
 }
 export declare class IfThenExpression extends Expression {
     condition: Expression;
     then: Expression;
     constructor(condition: Expression, then: Expression);
-    evaluate(): void;
+    evaluate(): Promise<void>;
+    evaluateSync(): void;
 }
