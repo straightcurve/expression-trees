@@ -1,6 +1,6 @@
 {
   "name": "expression-trees",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "engines": {
     "node": ">= 16.13 <17"
