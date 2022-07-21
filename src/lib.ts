@@ -34,8 +34,8 @@ export type AnySerializedExpression =
 
 export function deserialize(
   sExpression: AnySerializedExpression,
-  customDeserializeFn?: (expr: AnySerializedExpression) => Expression,
-): Expression {
+  customDeserializeFn?: (expr: AnySerializedExpression) => Expression<any>,
+): Expression<any> {
   switch (sExpression.type) {
     case 'constant': {
       const sConstantExpression = sExpression as SerializedConstantExpression;
@@ -108,15 +108,15 @@ export function deserialize(
   }
 }
 
-export abstract class Expression {
+export abstract class Expression<T> {
   constructor(public type: string) {}
 
-  public abstract evaluate(): Promise<any>;
-  public abstract evaluateSync(): any;
+  public abstract evaluate(): Promise<T>;
+  public abstract evaluateSync(): T;
 }
 
-export class ConstantExpression extends Expression {
-  constructor(public valueType: string, protected _value: any) {
+export class ConstantExpression<T> extends Expression<T> {
+  constructor(public valueType: string, protected _value: T) {
     super('constant');
     this.valueType = valueType;
   }
@@ -125,7 +125,7 @@ export class ConstantExpression extends Expression {
     return this._value;
   }
 
-  public set value(v: any) {
+  public set value(v: T) {
     this._value = v;
   }
 
@@ -138,52 +138,52 @@ export class ConstantExpression extends Expression {
   }
 }
 
-export class NumberExpression extends ConstantExpression {
+export class NumberExpression extends ConstantExpression<number> {
   constructor(value: number) {
     super('number', value);
   }
 
-  public override get value(): number {
+  public override get value() {
     return this._value;
   }
 
-  public override set value(v: number) {
+  public override set value(v) {
     this._value = v;
   }
 }
 
-export class StringExpression extends ConstantExpression {
-  constructor(value: any) {
+export class StringExpression extends ConstantExpression<string> {
+  constructor(value: string) {
     super('string', value);
   }
 
-  public override get value(): string {
+  public override get value() {
     return this._value;
   }
 
-  public override set value(v: string) {
+  public override set value(v) {
     this._value = v;
   }
 }
 
-export class BooleanExpression extends ConstantExpression {
-  constructor(value: any) {
+export class BooleanExpression extends ConstantExpression<boolean> {
+  constructor(value: boolean) {
     super('boolean', value);
   }
-  public override get value(): boolean {
+  public override get value() {
     return this._value;
   }
 
-  public override set value(v: boolean) {
+  public override set value(v) {
     this._value = v;
   }
 }
 
-export abstract class BinaryExpression extends Expression {
+export abstract class BinaryExpression extends Expression<boolean> {
   constructor(
     public op: string,
-    public left: Expression,
-    public right: Expression,
+    public left: Expression<any>,
+    public right: Expression<any>,
   ) {
     super('binary-expression');
     this.left = left;
@@ -192,21 +192,21 @@ export abstract class BinaryExpression extends Expression {
 }
 
 export class AndExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<boolean>, right: Expression<boolean>) {
     super('and', left, right);
   }
 
-  public override async evaluate(): Promise<boolean> {
+  public override async evaluate() {
     return (await this.left.evaluate()) && (await this.right.evaluate());
   }
 
-  public override evaluateSync(): boolean {
+  public override evaluateSync() {
     return this.left.evaluateSync() && this.right.evaluateSync();
   }
 }
 
 export class OrExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<boolean>, right: Expression<boolean>) {
     super('or', left, right);
   }
 
@@ -220,7 +220,7 @@ export class OrExpression extends BinaryExpression {
 }
 
 export class GreaterThanExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<number>, right: Expression<number>) {
     super('greater-than', left, right);
   }
 
@@ -234,7 +234,7 @@ export class GreaterThanExpression extends BinaryExpression {
 }
 
 export class LessThanExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<number>, right: Expression<number>) {
     super('less-than', left, right);
   }
 
@@ -248,7 +248,7 @@ export class LessThanExpression extends BinaryExpression {
 }
 
 export class GreaterThanOrEqualExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<number>, right: Expression<number>) {
     super('greater-than-or-equal', left, right);
   }
 
@@ -262,7 +262,7 @@ export class GreaterThanOrEqualExpression extends BinaryExpression {
 }
 
 export class LessThanOrEqualExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<number>, right: Expression<number>) {
     super('less-than-or-equal', left, right);
   }
 
@@ -276,7 +276,7 @@ export class LessThanOrEqualExpression extends BinaryExpression {
 }
 
 export class EqualsExpression extends BinaryExpression {
-  constructor(left: Expression, right: Expression) {
+  constructor(left: Expression<any>, right: Expression<any>) {
     super('equals', left, right);
   }
 
@@ -289,8 +289,8 @@ export class EqualsExpression extends BinaryExpression {
   }
 }
 
-export class BlockExpression extends Expression {
-  constructor(public expressions: Expression[]) {
+export class BlockExpression extends Expression<any> {
+  constructor(public expressions: Expression<any>[]) {
     super('block');
   }
 
@@ -306,8 +306,11 @@ export class BlockExpression extends Expression {
   }
 }
 
-export class IfThenExpression extends Expression {
-  constructor(public condition: Expression, public then: Expression) {
+export class IfThenExpression extends Expression<any> {
+  constructor(
+    public condition: Expression<boolean>,
+    public then: Expression<any>,
+  ) {
     super('if-then');
   }
 

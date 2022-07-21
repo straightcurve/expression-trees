@@ -10,14 +10,18 @@ import {
   NumberExpression,
   OrExpression,
   StringExpression,
-} from '../src/main.js';
+} from '../src/lib.js';
 
-class TestExpression extends Expression {
+class TestExpression extends Expression<any> {
   constructor(private lambda: () => void) {
     super('test');
   }
 
-  public override evaluate() {
+  public override async evaluate() {
+    this.lambda();
+  }
+
+  public override evaluateSync() {
     this.lambda();
   }
 }
@@ -180,7 +184,7 @@ describe('expression trees', () => {
 
     describe('block', () => {
       it('should work', () => {
-        new BlockExpression([] as Expression[]);
+        new BlockExpression([] as Expression<any>[]);
       });
     });
 
@@ -190,7 +194,7 @@ describe('expression trees', () => {
         const condition = new BooleanExpression(false);
         const block = new BlockExpression([
           new TestExpression(() => (value = 42)),
-        ] as Expression[]);
+        ] as Expression<any>[]);
         const expr = new IfThenExpression(condition, block);
 
         expr.evaluate();
